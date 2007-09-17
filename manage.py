@@ -17,6 +17,7 @@ import configobj
 from email import message_from_file
 import codecs
 import md5
+import markdown
 
 def _get_config(instancedir):
     """get the config object for an instance
@@ -79,6 +80,17 @@ def load_page(instancedir, pagename):
     filename = os.path.join(sourcedir, pagename) + suffix
     page = message_from_file(codecs.open(filename, 'r', 'utf-8'))
     return page
+
+def _render_page(instancedir, page):
+    """render a page using markdown and smartypants
+    @param page: object to render
+    @type page: email message object
+    @return: rendered contents
+    @rtype: string"""
+    config = _get_config(instancedir)
+    contents = page.get_payload()
+    with_markup = markdown.markdown(contents, config['markdown']['addons'])
+    return with_markup
 
 def create_instance(*args):
     """creates a new instance and it's required subdirectories"""
