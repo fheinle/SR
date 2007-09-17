@@ -1,0 +1,16 @@
+[DEFAULT]
+verbose = True
+
+[project]
+target = hg:target
+start-revision = INITIAL
+root-directory = /home/tiax/dev/sr-hg
+state-file = tailor.state
+source = bzr:source
+subdir = .
+
+[hg:target]
+
+[bzr:source]
+repository = /home/tiax/dev/static-render/trunk/
+
