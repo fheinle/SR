@@ -14,6 +14,7 @@ import os
 import sys
 import configobj
 from email import message_from_file
+import shelve
 import codecs
 import md5
 from markdown import markdown
@@ -131,7 +132,13 @@ def render_page(args):
     instancedir = args[0]
     pagename  = args[1]
     config = _get_config(instancedir)
-    pagename.rstrip(config['general']['source_suffix'])
+    seen_db = shelve.open(os.path.join(instancedir, 'seen_db'))
+    file_hash = _get_hash(instancedir, pagename)
+    if seen_db.has_key(pagename):
+        if file_hash == seen_db[pagename]:
+            print pagename + " has not changed"
+            return
+    #pagename.rstrip(config['general']['source_suffix'])
     page = _load_page(instancedir, pagename)
     target_filename = os.path.join(instancedir, 'output', pagename)  + '.html'
     if not os.path.isdir(os.path.split(target_filename)[0]):
@@ -139,7 +146,9 @@ def render_page(args):
     target_file = codecs.open(target_filename, 'w', 'utf-8')
     target_file.write(_render_template(instancedir, page))
     target_file.close()
+    seen_db[pagename] = _get_hash(instancedir, pagename)
     print target_filename + " written"
+    seen_db.close()
 
 def render_pages(instancedir):
     """render all pages in given instance dir
