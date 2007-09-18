@@ -115,13 +115,30 @@ def _render_template(instancedir, page):
     contents.update(page)
     return template.render(contents)
 
-def create_instance(*args):
+def render_page(args):
+    """render a givein page
+    @param instancedir: path to instance
+    @type instancedir: string
+    @param pagename: name of the page to render
+    @param pagename: string"""
+    instancedir = args[0]
+    pagename  = args[1]
+    config = _get_config(instancedir)
+    pagename.rstrip(config['general']['source_suffix'])
+    page = _load_page(instancedir, pagename)
+    target_filename = os.path.join(instancedir, 'output', pagename)  + '.html'
+    target_file = codecs.open(target_filename, 'w', 'utf-8')
+    target_file.write(_render_template(instancedir, page))
+    target_file.close()
+    print target_filename + " written"
+
+def create_instance(args):
     """creates a new instance and it's required subdirectories"""
     if len(args) != 1:
         print "Usage: createinstance directory"
         print "Only one directory per call allowed"
         exit(127)
-    basedir ,= args[0]
+    basedir = args[0]
     if not os.path.isdir(basedir):
         os.makedirs(basedir)
     for dirname in ('templates', 'output', 'source'):
@@ -141,6 +158,7 @@ def main():
     """handle command line arguments"""
     run_command = {
         'createinstance':create_instance,
+        'render_page':render_page,
     }
     usage = ['Available commands:']
     for available_command in run_command.keys():
