@@ -10,14 +10,13 @@ Usage:
         --create-dir dirname
 """
 
-from sys import argv
 import os
-from sys import exit
+import sys
 import configobj
 from email import message_from_file
 import codecs
 import md5
-import markdown
+from markdown import markdown
 import jinja
 
 def _get_config(instancedir):
@@ -91,7 +90,7 @@ def _markup_page(instancedir, page):
     @rtype: string"""
     config = _get_config(instancedir)
     contents = page.get_payload()
-    with_markup = markdown.markdown(contents, config['markdown']['addons'])
+    with_markup = markdown(contents, config['markdown']['addons'])
     return with_markup
 
 def _render_template(instancedir, page):
@@ -118,8 +117,8 @@ def list_pages(instancedir):
     """print pages in instancedir with hash
     @param instancedir: path to instance
     @type instancedir: string"""
-    instancedir ,= instancedir
-    print "Files in instancedir:"
+    instancedir, = instancedir
+    print "Files in instancedir"
     for filename in _get_filenames(instancedir):
         print "\t%s: %s" % (filename, _get_hash(instancedir, filename))
 
@@ -146,7 +145,7 @@ def render_pages(instancedir):
     """render all pages in given instance dir
     @param instancedir
     @type string"""
-    instancedir ,= instancedir
+    instancedir, = instancedir
     for pagename in _get_filenames(instancedir):
         render_page([instancedir, pagename])
 
@@ -155,7 +154,7 @@ def create_instance(args):
     if len(args) != 1:
         print "Usage: createinstance directory"
         print "Only one directory per call allowed"
-        exit(127)
+        sys.exit(127)
     basedir = args[0]
     if not os.path.isdir(basedir):
         os.makedirs(basedir)
@@ -183,10 +182,10 @@ def main():
     usage = ['Available commands:']
     for available_command in run_command.keys():
         usage.append("\t" + available_command)
-    if __file__ in argv[0]:
-        argumente = argv[1:]
-    elif "python" in argv[0]:
-        argumente = argv[2:]
+    if __file__ in sys.argv[0]:
+        argumente = sys.argv[1:]
+    elif "python" in sys.argv[0]:
+        argumente = sys.argv[2:]
     try:
         command = argumente.pop(0)
     except IndexError:
