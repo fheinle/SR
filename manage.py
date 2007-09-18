@@ -115,6 +115,15 @@ def _render_template(instancedir, page):
     contents.update(page)
     return template.render(contents)
 
+def list_pages(instancedir):
+    """print pages in instancedir with hash
+    @param instancedir: path to instance
+    @type instancedir: string"""
+    instancedir ,= instancedir
+    print "Files in instancedir:"
+    for filename in _get_filenames(instancedir):
+        print "\t%s: %s" % (filename, _get_hash(instancedir, filename))
+
 def render_page(args):
     """render a givein page
     @param instancedir: path to instance
@@ -159,6 +168,7 @@ def main():
     run_command = {
         'createinstance':create_instance,
         'render_page':render_page,
+        'list':list_pages,
     }
     usage = ['Available commands:']
     for available_command in run_command.keys():
