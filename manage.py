@@ -109,7 +109,7 @@ def _render_template(instancedir, page):
     if "template" in page:
         templatename = page['template']
     else:
-        templatename = 'standard'
+        templatename = 'standard.html'
     template = jinja_env.get_template(templatename)
     contents = {'content':_markup_page(instancedir, page)}
     contents.update(page)
@@ -136,10 +136,20 @@ def render_page(args):
     pagename.rstrip(config['general']['source_suffix'])
     page = _load_page(instancedir, pagename)
     target_filename = os.path.join(instancedir, 'output', pagename)  + '.html'
+    if not os.path.isdir(os.path.split(target_filename)[0]):
+        os.makedirs(os.path.split(target_filename)[0])
     target_file = codecs.open(target_filename, 'w', 'utf-8')
     target_file.write(_render_template(instancedir, page))
     target_file.close()
     print target_filename + " written"
+
+def render_pages(instancedir):
+    """render all pages in given instance dir
+    @param instancedir
+    @type string"""
+    instancedir ,= instancedir
+    for pagename in _get_filenames(instancedir):
+        render_page([instancedir, pagename])
 
 def create_instance(args):
     """creates a new instance and it's required subdirectories"""
@@ -169,6 +179,7 @@ def main():
         'createinstance':create_instance,
         'render_page':render_page,
         'list':list_pages,
+        'render':render_pages,
     }
     usage = ['Available commands:']
     for available_command in run_command.keys():
