@@ -41,7 +41,7 @@ def _get_hash(instancedir, pagename):
     config = _get_config(instancedir)
     suffix = config['general']['source_suffix']
     filename = os.path.join(instancedir, 'source', pagename) + suffix
-    page =  codecs.open(filename, 'r', 'utf-8').read()
+    page =  open(filename, 'r').read()
     page_hash = md5.new(page).hexdigest()
     return page_hash
 
@@ -61,10 +61,9 @@ def _get_filenames(instancedir):
             if filename.endswith(suffix):
                 yield os.path.join(
                                     directory[0].partition('source')[2],
-                                    filename
-                                  )\
-                                  .rstrip(suffix)\
-                                  .lstrip('/')
+                                    filename)\
+                    [0:-1 * len(config['general']['source_suffix'])]\
+                    .lstrip('/')
     
 def _load_page(instancedir, pagename):
     """opens a page from filesystem and returns it's data and headers
