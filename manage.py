@@ -18,6 +18,7 @@ from email import message_from_file
 import codecs
 import md5
 import markdown
+import jinja
 
 def _get_config(instancedir):
     """get the config object for an instance
@@ -44,7 +45,7 @@ def _get_hash(instancedir, pagename):
     page_hash = md5.new(page).hexdigest()
     return page_hash
 
-def get_filenames(instancedir):
+def _get_filenames(instancedir):
     """retrieve all files with suffix from config file in instancedir
     
     @param instancedir: path to instance
@@ -65,9 +66,9 @@ def get_filenames(instancedir):
                                   .rstrip(suffix)\
                                   .lstrip('/')
     
-def load_page(instancedir, pagename):
+def _load_page(instancedir, pagename):
     """opens a page from filesystem and returns it's data and headers
-    @param instancedir:
+    @param instancedir: path to instance
     @type instancedir: string
     @param pagename: with path relative to sourcedir, without suffix
     @type pagename: string
@@ -81,8 +82,10 @@ def load_page(instancedir, pagename):
     page = message_from_file(codecs.open(filename, 'r', 'utf-8'))
     return page
 
-def _render_page(instancedir, page):
+def _markup_page(instancedir, page):
     """render a page using markdown and smartypants
+    @param instancedir: path to instance
+    @type instancedir: string
     @param page: object to render
     @type page: email message object
     @return: rendered contents
@@ -91,6 +94,26 @@ def _render_page(instancedir, page):
     contents = page.get_payload()
     with_markup = markdown.markdown(contents, config['markdown']['addons'])
     return with_markup
+
+def _render_template(instancedir, page):
+    """render a page into a jinja template
+    @param instancedir: path to instance
+    @type instancedir: string
+    @param page: object to render
+    @type page: email message object
+    @returns: rendered html document
+    @rtype: string"""
+    jinja_env = jinja.Environment(
+        loader=jinja.FileSystemLoader(os.path.join(instancedir, 'templates'))
+    )
+    if "template" in page:
+        templatename = page['template']
+    else:
+        templatename = 'standard'
+    template = jinja_env.get_template(templatename)
+    contents = {'content':_markup_page(instancedir, page)}
+    contents.update(page)
+    return template.render(contents)
 
 def create_instance(*args):
     """creates a new instance and it's required subdirectories"""
