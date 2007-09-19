@@ -132,13 +132,14 @@ def render_page(args):
     instancedir = args[0]
     pagename  = args[1]
     config = _get_config(instancedir)
+    if pagename.endswith(config['general']['source_suffix']:
+        pagename = pagename[0:-1 * len(config['general']['source_suffix'])]\
     seen_db = shelve.open(os.path.join(instancedir, 'seen_db'))
     file_hash = _get_hash(instancedir, pagename)
     if seen_db.has_key(pagename):
         if file_hash == seen_db[pagename]:
             print pagename + " has not changed"
             return
-    #pagename.rstrip(config['general']['source_suffix'])
     page = _load_page(instancedir, pagename)
     target_filename = os.path.join(instancedir, 'output', pagename)  + '.html'
     if not os.path.isdir(os.path.split(target_filename)[0]):
