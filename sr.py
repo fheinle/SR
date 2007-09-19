@@ -257,8 +257,8 @@ def render_page(args):
 
 def render_pages(instancedir):
     """render all pages in given instance dir
-    @param instancedir
-    @type string"""
+    @param instancedir: path to instance
+    @type instancedir: string"""
     instancedir, = instancedir
     for pagename in _get_filenames(instancedir):
         render_page([instancedir, pagename])
