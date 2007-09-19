@@ -2,12 +2,109 @@
 # -*- coding: utf-8 -*-
 
 """
-Manage directories for static rendering
+Static rendering for websites
+=============================
+This script takes a directory of html templates and source files for content,
+formatted in markdown syntax and creates html output from it which can then be
+uploaded to any given webhoster without the need for running any programm code
+there. 
 
-Usage:
-    manage.py action [target]
-        
-        --create-dir dirname
+Markdown addons can be used - the script is shipped with an addon for code 
+highlighting, preconfigured to use pygments syntax highlighter. 
+
+Requirements
+------------
+ * any python version that supports jinja and configobj
+ * jinja templating
+ * configobj
+
+Additionally, markdown 1.5 is required for it's support of addons.
+However, as stable Debian and Ubuntu ship 1.4 in their repos, a recent version
+of markdown is shipped with this script.
+
+Installation
+------------
+Just extract the script and the files it comes with. It doesn't have to be
+placed on python path.
+
+Usage
+-----
+This script works from a set of directorie ("instances")
+
+Creating instances
+~~~~~~~~~~~~~~~~~~
+Create those by typing
+ 
+ $ ./sr.py createinstance pathname
+
+You will find 3 directories plus one config file config.ini in pathname.
+Source files for pages go into pathname/source or any of it's subdirectories
+you create. Files that will be rendered need to have a certain filename
+extension, which defaults to .txt - you can change this in config.ini though.
+
+Text will be parsed by markdown. Additionally, you can place any metadata you
+want to be passed to templates in email-style headers which have to be
+separated from text by one blank line. Examples might be page title, meta
+keywords or any other information that doesn't go into the main text passage
+and won't be parsed by markdown. If set, the script will use any "templatename"
+headers value instead of "standard.html".
+
+Listing files
+~~~~~~~~~~~~~
+
+ $ ./sr.py list pathname
+
+This will list all files the script considers to render in a given instance
+and their md5 hashes
+
+Rendering single files
+~~~~~~~~~~~~~~~~~~~~~~
+
+ $ ./sr.py render_page pathname pagename
+
+This will only render the given page in the given instance directory,
+regardless of wether it's been changed or not.
+
+Rendering of whole instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ $ ./sr.py render pathname
+
+This will render all source files in the given instance dir that haven't
+changed since the last time the script ran. For this purpose, a file seen_db
+will be created automatically which stores md5 hashes for every source file.
+
+Todo
+----
+ * remove files from output that no longer have a source file, i.e. have been
+   deleted in the source directory
+ * automate uploading to webhosts
+ * integrate smartypants without messing up source code 
+ * maybe add some additional storage backends - shelves, databases, et al
+
+Copyright
+---------
+This script is placed under MIT license
+
+Copyright (c) 2007 Florian Heinle <florian-sr@planet-tiax.de>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 import os
@@ -132,8 +229,8 @@ def render_page(args):
     instancedir = args[0]
     pagename  = args[1]
     config = _get_config(instancedir)
-    if pagename.endswith(config['general']['source_suffix']:
-        pagename = pagename[0:-1 * len(config['general']['source_suffix'])]\
+    if pagename.endswith(config['general']['source_suffix']):
+        pagename = pagename[0:-1 * len(config['general']['source_suffix'])]
     seen_db = shelve.open(os.path.join(instancedir, 'seen_db'))
     file_hash = _get_hash(instancedir, pagename)
     if seen_db.has_key(pagename):
@@ -185,8 +282,8 @@ def main():
     """handle command line arguments"""
     run_command = {
         'createinstance':create_instance,
-        'render_page':render_page,
         'list':list_pages,
+        'render_page':render_page,
         'render':render_pages,
     }
     usage = ['Available commands:']
