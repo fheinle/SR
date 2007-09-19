@@ -216,9 +216,16 @@ def list_pages(instancedir):
     @param instancedir: path to instance
     @type instancedir: string"""
     instancedir, = instancedir
+    seen_db = shelve.open(os.path.join(instancedir, 'seen_db'))
     print "Files in instancedir"
     for filename in _get_filenames(instancedir):
-        print "\t%s: %s" % (filename, _get_hash(instancedir, filename))
+        print "\t" + filename,
+        if seen_db.has_key(filename):
+            if seen_db[filename] == _get_hash(instancedir, filename):
+                print "not modified"
+            else:
+                print "modified"
+    seen_db.close()
 
 def render_page(args):
     """render a givein page
