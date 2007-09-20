@@ -29,7 +29,8 @@ placed on python path.
 
 Usage
 -----
-This script works from a set of directorie ("instances")
+This script works from a set of directorie, which is referred to as an
+"instance" hereafter.
 
 Creating instances
 ~~~~~~~~~~~~~~~~~~
@@ -188,7 +189,11 @@ def _markup_page(instancedir, page):
     @rtype: string"""
     config = _get_config(instancedir)
     contents = page.get_payload()
-    with_markup = markdown(contents, config['markdown']['addons'])
+    with_markup = markdown(
+        contents,
+        config['markdown']['addons'],
+        safe_mode=config['markdown']['safe_mode'],
+    )
     return with_markup
 
 def _render_template(instancedir, page):
