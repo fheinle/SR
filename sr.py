@@ -18,7 +18,7 @@ Requirements
  * jinja templating
  * configobj
 
-Additionally, markdown 1.5 is required for it's support of addons.
+Additionally, markdown 1.5 is required for its support of addons.
 However, as stable Debian and Ubuntu ship 1.4 in their repos, a recent version
 of markdown is shipped with this script.
 
@@ -39,7 +39,7 @@ Create those by typing
  $ ./sr.py createinstance pathname
 
 You will find 3 directories plus one config file config.ini in pathname.
-Source files for pages go into pathname/source or any of it's subdirectories
+Source files for pages go into pathname/source or any of its subdirectories
 you create. Files that will be rendered need to have a certain filename
 extension, which defaults to .txt - you can change this in config.ini though.
 
@@ -64,7 +64,7 @@ Rendering single files
  $ ./sr.py render_page pathname pagename
 
 This will only render the given page in the given instance directory,
-regardless of wether it's been changed or not.
+regardless of wether its been changed or not.
 
 Rendering of whole instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -164,7 +164,7 @@ def _get_filenames(instancedir):
                     .lstrip('/')
     
 def _load_page(instancedir, pagename):
-    """opens a page from filesystem and returns it's data and headers
+    """opens a page from filesystem and returns its data and headers
     @param instancedir: path to instance
     @type instancedir: string
     @param pagename: with path relative to sourcedir, without suffix
@@ -204,6 +204,7 @@ def _render_template(instancedir, page):
     @type page: email message object
     @returns: rendered html document
     @rtype: string"""
+    config = _get_config(instancedir)
     jinja_env = jinja.Environment(
         loader=jinja.FileSystemLoader(os.path.join(instancedir, 'templates'))
     )
@@ -233,7 +234,7 @@ def list_pages(instancedir):
     seen_db.close()
 
 def render_page(args):
-    """render a givein page
+    """render a given page
     @param instancedir: path to instance
     @type instancedir: string
     @param pagename: name of the page to render
@@ -269,7 +270,9 @@ def render_pages(instancedir):
         render_page([instancedir, pagename])
 
 def create_instance(args):
-    """creates a new instance and it's required subdirectories"""
+    """creates a new instance and its required subdirectories
+    TODO: think of something saner for configuration template
+    """
     if len(args) != 1:
         print "Usage: createinstance directory"
         print "Only one directory per call allowed"
@@ -291,7 +294,8 @@ def create_instance(args):
     config.write()
 
 def main():
-    """handle command line arguments"""
+    """handle command line arguments
+    TODO: come up with something less hackish for this"""
     run_command = {
         'createinstance':create_instance,
         'list':list_pages,
