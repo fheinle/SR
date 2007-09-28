@@ -213,10 +213,42 @@ def _render_template(instancedir, page):
     else:
         templatename = 'standard.html'
     template = jinja_env.get_template(templatename)
-    contents = {'content':_markup_page(instancedir, page)}
+    contents = {
+        'content':_markup_page(instancedir, page),
+        'nav':config['navigation'],
+    }
     contents.update(page)
     return template.render(contents)
 
+def makenav(instancedir):
+    """make navigation links
+    this reads several header settings:
+     
+     * navorder: positive integer, high values go to the top of the list, lower
+     values go to the bottom. Negative values don't show up in navigation.
+     Defaults to 0 if not set
+     * navlink: if not set, pagetitle is used. If set, the name provided will
+     show up in navigation instead of pagetitle
+
+    Writes a dict of {title:url} to configuration file, sorted as
+    mentioned above."""
+    config = _get_config(instancedir)
+    def nav_cmp(x,y):
+        """compare pages, looking at their navorder header"""
+        if int(x[1]['navorder']) > int(y[1]['navorder']):
+            return -1
+        elif int(x[1]['navorder']) == int(y[1]['navorder']):
+            return 0
+        elif int(x[1]['navorder']) < int(y[1]['navorder']):
+            return 1
+    pages = [(page, _load_page(instancedir, page))
+            for page in _get_filenames(instancedir)]
+    pages.sort(nav_cmp)
+    for page in pages:
+        navlink = page[1]['navlink'] or page[1]['pagetitle']
+        config['navigation'][navlink] = page[0]
+    config.write()
+        
 def list_pages(instancedir):
     """print pages in instancedir with hash
     @param instancedir: path to instance
@@ -316,8 +348,9 @@ def main():
     else:
         try:
             run_command[command](argumente)
-        except KeyError:
+        except KeyError, e:
             print "\n".join(usage)
+            print e
 
 if __name__ == '__main__':
     main()
