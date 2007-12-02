@@ -19,9 +19,6 @@ import templates
 class Project(object):
     """
     base project where all pages are stored inside
-    needs to be called like 
-
-    >>> p = Project('/home/tiax/projdirectory')
     """
     def __init__(self, directory):
         self.directory = os.path.abspath(directory)
@@ -42,14 +39,7 @@ class Project(object):
         output is relative to project's source directory,
         contains all filenames that carry the suffix supplied in conig.ini,
         sans leading slash and filename suffix
-
-        >>> p = Project('/home/tiax/projdirectory')
-        >>> for page in p.pages: print page
-        index
-        rants/pie
-        articles/cheescake
-
-        """
+       """
         
         for directory in os.walk(self.sourcedir):
             for filename in directory[2]: 
@@ -182,6 +172,4 @@ class Page(object):
         output_file.close()
 
 if __name__ == '__main__':
-    if sys.argv[1] == 'test':
-        import doctest
-        doctest.testmod(Project)
+    pass
