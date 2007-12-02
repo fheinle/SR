@@ -12,10 +12,9 @@ from ConfigParser import SafeConfigParser
 import email
 import md5
 import shelve
-import markdown
 
-# TODO: remove jinja dependency
-import jinja
+import markdown
+import templates
 
 class Project(object):
     """
@@ -136,10 +135,9 @@ class Page(object):
         if the pages has an attribute "temlate" in it's header, it will be used
         instead of the default "standard.html" template.
         """
-        jinja_env = jinja.Environment(
-            loader=jinja.FileSystemLoader(os.path.join(self.project.directory, 'templates'))
-        )
-        template = jinja_env.get_template(self.templatename)
+        template = templates.Template.from_file(
+            os.path.join(self.project.directory, 'templates', self.templatename)
+            )
         contents = {
             'content':self.markup(),
             'nav':self.project.config.items('navigation'),
