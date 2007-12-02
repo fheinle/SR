@@ -6,7 +6,6 @@ rewrite of sr
 """
 
 import os
-import sys
 import codecs
 from ConfigParser import SafeConfigParser
 import email
@@ -29,7 +28,10 @@ class Project(object):
         self.config.readfp(configfile)
         self.sourcedir = os.path.join(self.directory, 'source')
         self.pagesuffix = self.config.get('general', 'suffix')
-        self.hash_db = shelve.open(os.path.join(self.directory, 'hash.db'), writeback=True)
+        self.hash_db = shelve.open(
+            os.path.join(self.directory, 'hash.db'),
+            writeback=True
+        )
 
     @property
     def pages(self):
@@ -60,6 +62,20 @@ class Project(object):
             self.config_hash == self.hash_db['__config__']:
             return True
 
+    def list(self):
+        """
+        list all pages that require rendering
+        """
+        for page in self.pages:
+            if page.has_changed:
+                print "%s has changed" % page.pagename
+            else:
+                print "%s unchanged" % page.pagename
+        if self.config_changed:
+            print "Configuration has changed, complete re-rendering"
+        else:
+            print "Configuration unchanged"
+
     def render(self, force=False):
         """
         render the project
@@ -82,11 +98,11 @@ class Page(object):
     """
     a single page
     """
-    def __init__(self, project, pagename):
+    def __init__(self, parent_project, pagename):
         """
         set up a page with both it's parent project name and it's own
         """
-        self.project = project
+        self.project = parent_project
         self.pagename = pagename
         pagefile = codecs.open(
             os.path.join(project.sourcedir, pagename) + project.pagesuffix,
@@ -110,12 +126,12 @@ class Page(object):
                                                                "true",
                                                                "yes",
                                                                "on"]:
-            safe_mode=True
+            safe_mode = True
         else:
-            safe_mode=False
-        return markdown.markdown(self.page.get_payload(),
-                                 self.project.config.get('markdown', 'addons').split(',') or None,
-                                 safe_mode
+            safe_mode = False
+        return markdown.markdown(self.page.get_payload().decode('utf-8'),
+              self.project.config.get('markdown', 'addons').split(',') or None,
+              safe_mode,
         )
 
     def _render_template(self):
@@ -156,7 +172,11 @@ class Page(object):
         if `force` isn't true, md5 hashes will be compared to find out
         if re-rendering the page is really necessary.
         """
-        target_filename = os.path.join(self.project.directory, 'output', self.pagename + '.html')
+        target_filename = os.path.join(
+            self.project.directory,
+            'output',
+            self.pagename + '.html'
+        )
         target_dir = os.path.dirname(target_filename)
         if not os.path.isdir(target_dir):
             os.makedirs(target_dir)
@@ -171,5 +191,42 @@ class Page(object):
         output_file.write(self._render_template())
         output_file.close()
 
+def create(directory):
+    """
+    create a new directory and the subdirectories needed for usage with sr
+    """
+    os.makedirs(directory)
+    os.makedirs(os.path.join(directory, 'source'))
+    os.makedirs(os.path.join(directory, 'templates'))
+    os.makedirs(os.path.join(directory, 'output'))
+    configfile = open(os.path.join(directory, 'config.ini'), 'w')
+    config = SafeConfigParser()
+    config.add_section('markdown')
+    config.add_section('general')
+    config.add_section('navigation')
+    config.set('markdown', 'safe', 'False')
+    config.set('markdown', 'addons', 'codehilite,')
+    config.set('general', 'suffix', '.txt')
+    config.set('navigation', 'index', 'index.html')
+    config.write(configfile)
+    
 if __name__ == '__main__':
-    pass
+    from optparse import OptionParser
+    parser = OptionParser()
+    usage = "usage: %prog [-f] command directory"
+    parser = OptionParser(usage=usage)
+    parser.add_option('-f', '--force', default=False, action="store_true",
+            dest="force", help="Force rendering even if pages haven't changed"
+    )
+    (options, args) = parser.parse_args()
+    (command, proj_dir) = args
+    if command == "render":
+        project = Project(proj_dir)
+        project.render(force=options.force)
+    elif command == "list":
+        project = Project(proj_dir)
+        project.list()
+    elif command == "create":
+        create(proj_dir)
+    else:
+        print "Unknown command"
