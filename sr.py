@@ -86,18 +86,21 @@ class Project(object):
 
         if not given the argument `force`, render only changed pages
         also render everything when configuration changes
+        returns a tuple ([rendered_pages], [unrendered_pages])
         """
         if self.config_changed:
-            print "Config changed, rendering forced"
             force = True
             self.hash_db['__config__'] = self.config_hash
             self.hash_db.sync()
+        rendered_pages = []
+        unrendered_pages = []
         for page in self.pages:
             if page.has_changed or force:
-                print "Rendering %s" % page.pagename
+                rendered_pages.append(page.pagename)
                 page.render()
             else:
-                print "Not rendering %s" % page.pagename
+                unrendered_pages.append(page.pagename)
+        return (rendered_pages, unrendered_pages)
 
 class Page(object):
     """
