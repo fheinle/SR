@@ -62,19 +62,23 @@ class Project(object):
             self.config_hash == self.hash_db['__config__']:
             return True
 
-    def list(self):
+    def list_changed(self):
         """
         list all pages that require rendering
+
+        returns a tuple of ([changed_pages], [unchanged_pages])
         """
-        for page in self.pages:
-            if page.has_changed:
-                print "%s has changed" % page.pagename
-            else:
-                print "%s unchanged" % page.pagename
+        changed_pages = []
+        unchanged_pages = []
         if self.config_changed:
-            print "Configuration has changed, complete re-rendering"
+            return ([page for page in self.pages],[])
         else:
-            print "Configuration unchanged"
+            for page in self.pages:
+                if page.has_changed:
+                    changed_pages.append(page.pagename) 
+                else:
+                    unchanged_pages.append(page.pagename)
+            return (changed_pages, unchanged_pages)
 
     def render(self, force=False):
         """
@@ -87,6 +91,7 @@ class Project(object):
             print "Config changed, rendering forced"
             force = True
             self.hash_db['__config__'] = self.config_hash
+            self.hash_db.sync()
         for page in self.pages:
             if page.has_changed or force:
                 print "Rendering %s" % page.pagename
@@ -105,7 +110,7 @@ class Page(object):
         self.project = parent_project
         self.pagename = pagename
         pagefile = codecs.open(
-            os.path.join(project.sourcedir, pagename) + project.pagesuffix,
+            os.path.join(self.project.sourcedir, pagename) + self.project.pagesuffix,
             'r',
             'utf-8',
         )
@@ -209,7 +214,18 @@ def create(directory):
     config.set('general', 'suffix', '.txt')
     config.set('navigation', 'index', 'index.html')
     config.write(configfile)
-    
+
+def list_changed(project):
+    """
+    print all files that need re-rendering in given project
+    """
+    print "Files that need re-rendering: "
+    for changed_page in project.list_changed()[0]:
+        print " " + changed_page.pagename
+    print "Files that don't need to be rendered: "
+    for unchanged_page in project.list_changed()[1]:
+        print " " + unchanged_page.pagename
+
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
@@ -225,7 +241,7 @@ if __name__ == '__main__':
         project.render(force=options.force)
     elif command == "list":
         project = Project(proj_dir)
-        project.list()
+        list_changed(project)
     elif command == "create":
         create(proj_dir)
     else:
