@@ -2,13 +2,34 @@
 # -*- coding:utf-8 -*-
 
 """
-sr
-part of sr, static rendering from markdown formatted textfiles
+Static Rendering
+================
 
-provides a frontend to libsr
+SR means to provide easy methods for rendering plaintext files with human
+readable formatting into static html files, for situations when no
+complete/dynamic CMS is necessary.
+
+Command line arguments
+----------------------
+This is the command line handler script. Actual rendering and work takes place
+in libsr.py
+
+    - create /path/to/project/directory: 
+    create a new project
+
+    - list /path/to/project/directory:
+    list all files that have changed in a project
+
+    - render [--force] /path/to/directory:
+    render all files that have changed in a project.
+    When passing --force, render all files, changed or no
+
 """
 
+
+from __future__ import with_statement
 import os
+import sys
 from ConfigParser import SafeConfigParser
 
 from libsr import Project
@@ -53,13 +74,29 @@ def list_changed(project):
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
-    usage = "usage: %prog [-f] command directory"
+    usage = """\
+     %prog [-f] command directory
+
+    Supported commands:
+
+    create /path/to/project/dir
+        creates a new project under given directory
+    list /path/to/project/dir
+        list all files that have changed since last rendering in given dir
+    render --force /path/to/project/dir
+        render all files that have changed since last rendering 
+        render all files when given the --force parameter
+   """
     parser = OptionParser(usage=usage)
     parser.add_option('-f', '--force', default=False, action="store_true",
             dest="force", help="Force rendering even if pages haven't changed"
     )
     (options, args) = parser.parse_args()
-    (command, proj_dir) = args
+    try:
+        (command, proj_dir) = args
+    except ValueError:
+        parser.print_usage()
+        sys.exit(1)
     if command == "render":
         project = Project(proj_dir)
         project.render(force=options.force)
