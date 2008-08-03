@@ -2,31 +2,42 @@
 # -*- coding:utf-8 -*-
 
 """
-libsr
-part of sr, static rendering from markdown formatted textfiles
+Static Rendering
+================
 
-provides project and page-classes for use with frontend sr.py
+libsr
+-----
+
+This is the part of sr that distinguishes directories into projects
 """
 
 import os
 import codecs
-from ConfigParser import SafeConfigParser
-import email
-import md5
 import shelve
+from ConfigParser import SafeConfigParser
+from email import message_from_string
+from md5 import md5
+from markdown import markdown
 
-import markdown
 import templates
 
 class Project(object):
     """
-    base project where all pages are stored inside
+    base project where all pages are stored inside. MD5Sums of pages are 
+    stored in a hash db inside a shelve
     """
     def __init__(self, directory):
+        """
+        open the config file and hash db
+
+        @param directory: path to the directory the project is olocated in
+        @type directory: string
+        """
+
         self.directory = os.path.abspath(directory)
         self.config = SafeConfigParser()
         configfile = open(os.path.join(directory, 'config.ini'))
-        self.config_hash = md5.md5(configfile.read()).hexdigest()
+        self.config_hash = md5(configfile.read()).hexdigest()
         configfile.seek(0)
         self.config.readfp(configfile)
         self.sourcedir = os.path.join(self.directory, 'source')
@@ -39,13 +50,12 @@ class Project(object):
     @property
     def pages(self):
         """
-        return all pages found in the project's sourcedirectory
-
+        find all source files in the project directory
+        
         output is relative to project's source directory,
         contains all filenames that carry the suffix supplied in conig.ini,
         sans leading slash and filename suffix
        """
-        
         for directory in os.walk(self.sourcedir):
             for filename in directory[2]: 
                 if filename.endswith(self.pagesuffix):
@@ -56,6 +66,7 @@ class Project(object):
                     [0:-1 * len(self.pagesuffix)]\
                     .lstrip('/')
                     yield Page(self, pagename)
+
     @property
     def config_changed(self):
         """
@@ -67,9 +78,10 @@ class Project(object):
 
     def list_changed(self):
         """
-        list all pages that require rendering
+        list all pages that require rendering because they have changed
 
-        returns a tuple of ([changed_pages], [unchanged_pages])
+        @return: lists of changed and unchanged pages
+        @rtype: tuple of lists
         """
         changed_pages = []
         unchanged_pages = []
@@ -87,9 +99,12 @@ class Project(object):
         """
         render the project
 
-        if not given the argument `force`, render only changed pages
-        also render everything when configuration changes
-        returns a tuple ([rendered_pages], [unrendered_pages])
+        renders only changed pages or all pages, if config changed 
+
+        @keyword force: if not given, render only pages that have changed
+                        since last run. If given, render everything
+        @return: lists of rendered and unrendered pages
+        @rtype: tuple of lists
         """
         if self.config_changed:
             force = True
@@ -112,6 +127,11 @@ class Page(object):
     def __init__(self, parent_project, pagename):
         """
         set up a page with both it's parent project name and it's own
+
+        @param parent_project: related project
+        @type parent_project: Project object
+        @param pagename: page filename
+        @type pagename: string
         """
         self.project = parent_project
         self.pagename = pagename
@@ -120,7 +140,7 @@ class Page(object):
             'r',
             'utf-8',
         )
-        self.page = email.message_from_string(pagefile.read().encode('utf-8'))
+        self.page = message_from_string(pagefile.read().encode('utf-8'))
         if self.page.has_key('template'):
             self.templatename = self.page['template']
         else:
@@ -132,6 +152,8 @@ class Page(object):
     def markup(self):
         """
         render a page using markdown
+        
+        @return: rendered html contents
         """
         if self.project.config.get('markdown', 'safe').lower() in [
                                                                "true",
@@ -140,7 +162,7 @@ class Page(object):
             safe_mode = True
         else:
             safe_mode = False
-        return markdown.markdown(self.page.get_payload().decode('utf-8'),
+        return markdown(self.page.get_payload().decode('utf-8'),
               self.project.config.get('markdown', 'addons').split(',') or None,
               safe_mode,
         )
@@ -151,6 +173,9 @@ class Page(object):
 
         if the pages has an attribute "temlate" in it's header, it will be used
         instead of the default "standard.html" template.
+
+        @return: complete html page
+        @rtype: string
         """
         template = templates.Template.from_file(
             os.path.join(self.project.directory, 'templates', self.templatename)
@@ -170,7 +195,7 @@ class Page(object):
         """
         if not self.project.hash_db.has_key(self.pagename):
             return True
-        page_hash = md5.md5(self.page.as_string()).hexdigest()
+        page_hash = md5(self.page.as_string()).hexdigest()
         if self.project.hash_db[self.pagename] == page_hash:
             return False
         else:
@@ -196,7 +221,7 @@ class Page(object):
             'w',
             'utf-8',
         )
-        new_page_hash = md5.md5(self.page.as_string()).hexdigest()
+        new_page_hash = md5(self.page.as_string()).hexdigest()
         self.project.hash_db[self.pagename] = new_page_hash
         self.project.hash_db.sync()
         output_file.write(self._render_template())
