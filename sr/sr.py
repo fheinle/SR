@@ -71,7 +71,7 @@ def list_changed(project):
     for unchanged_page in project.list_changed()[1]:
         print " " + unchanged_page
 
-if __name__ == '__main__':
+def main():
     from optparse import OptionParser
     parser = OptionParser()
     usage = """\
@@ -107,3 +107,6 @@ if __name__ == '__main__':
         create(proj_dir)
     else:
         print "Unknown command"
+
+if __name__ == '__main__':
+        main()  
