@@ -36,12 +36,12 @@ class Project(object):
 
         self.directory = os.path.abspath(directory)
         self.config = SafeConfigParser()
-        configfile = open(os.path.join(directory, 'config.ini'))
-        self.config_hash = md5(configfile.read()).hexdigest()
-        configfile.seek(0)
-        self.config.readfp(configfile)
-        self.sourcedir = os.path.join(self.directory, 'source')
-        self.pagesuffix = self.config.get('general', 'suffix')
+        config_file = open(os.path.join(directory, 'config.ini'))
+        self.config_hash = md5(config_file.read()).hexdigest()
+        config_file.seek(0)
+        self.config.readfp(config_file)
+        self.source_dir = os.path.join(self.directory, 'source')
+        self.page_suffix = self.config.get('general', 'suffix')
         self.hash_db = shelve.open(
             os.path.join(self.directory, 'hash.db'),
             writeback=True
@@ -56,16 +56,16 @@ class Project(object):
         contains all filenames that carry the suffix supplied in conig.ini,
         sans leading slash and filename suffix
        """
-        for directory in os.walk(self.sourcedir):
+        for directory in os.walk(self.source_dir):
             for filename in directory[2]: 
-                if filename.endswith(self.pagesuffix):
-                    pagename = os.path.join(
+                if filename.endswith(self.page_suffix):
+                    page_name = os.path.join(
                         directory[0].partition('source')[2],
                         filename
                     )\
-                    [0:-1 * len(self.pagesuffix)]\
+                    [0:-1 * len(self.page_suffix)]\
                     .lstrip('/')
-                    yield Page(self, pagename)
+                    yield Page(self, page_name)
 
     @property
     def config_changed(self):
@@ -80,19 +80,21 @@ class Project(object):
         """
         list all pages that require rendering because they have changed
 
+        lists all pages, if the config file has changed
+
         @return: lists of changed and unchanged pages
         @rtype: tuple of lists
         """
         changed_pages = []
         unchanged_pages = []
         if self.config_changed:
-            return ([page for page in self.pages],[])
+            return ([page for page in self.pages], [])
         else:
             for page in self.pages:
                 if page.has_changed:
-                    changed_pages.append(page.pagename) 
+                    changed_pages.append(page.page_name) 
                 else:
-                    unchanged_pages.append(page.pagename)
+                    unchanged_pages.append(page.page_name)
             return (changed_pages, unchanged_pages)
 
     def render(self, force=False):
@@ -114,40 +116,41 @@ class Project(object):
         unrendered_pages = []
         for page in self.pages:
             if page.has_changed or force:
-                rendered_pages.append(page.pagename)
+                rendered_pages.append(page.page_name)
                 page.render()
             else:
-                unrendered_pages.append(page.pagename)
+                unrendered_pages.append(page.page_name)
         return (rendered_pages, unrendered_pages)
 
 class Page(object):
     """
     a single page
     """
-    def __init__(self, parent_project, pagename):
+    def __init__(self, parent_project, page_name):
         """
         set up a page with both it's parent project name and it's own
 
         @param parent_project: related project
         @type parent_project: Project object
-        @param pagename: page filename
-        @type pagename: string
+        @param page_name: page filename
+        @type page_name: string
         """
         self.project = parent_project
-        self.pagename = pagename
-        pagefile = codecs.open(
-            os.path.join(self.project.sourcedir, pagename) + self.project.pagesuffix,
+        self.page_name = page_name
+        page_file = codecs.open(
+            os.path.join(self.project.source_dir, page_name) \
+              + self.project.page_suffix,
             'r',
             'utf-8',
         )
-        self.page = message_from_string(pagefile.read().encode('utf-8'))
+        self.page = message_from_string(page_file.read().encode('utf-8'))
         if self.page.has_key('template'):
-            self.templatename = self.page['template']
+            self.template_name = self.page['template']
         else:
-            self.templatename = "standard.html"
+            self.template_name = "standard.html"
 
     def __repr__(self):
-        return "<Page: %s>" % self.pagename
+        return "<Page: %s>" % self.page_name
 
     def markup(self):
         """
@@ -178,7 +181,10 @@ class Page(object):
         @rtype: string
         """
         template = templates.Template.from_file(
-            os.path.join(self.project.directory, 'templates', self.templatename)
+            os.path.join(
+                self.project.directory, 
+                'templates',
+                self.template_name)
             )
         contents = {
             'content':self.markup(),
@@ -193,10 +199,10 @@ class Page(object):
         """
         check if contents of the page have changed or the page is all new
         """
-        if not self.project.hash_db.has_key(self.pagename):
+        if not self.project.hash_db.has_key(self.page_name):
             return True
         page_hash = md5(self.page.as_string()).hexdigest()
-        if self.project.hash_db[self.pagename] == page_hash:
+        if self.project.hash_db[self.page_name] == page_hash:
             return False
         else:
             return True
@@ -211,7 +217,7 @@ class Page(object):
         target_filename = os.path.join(
             self.project.directory,
             'output',
-            self.pagename + '.html'
+            self.page_name + '.html'
         )
         target_dir = os.path.dirname(target_filename)
         if not os.path.isdir(target_dir):
@@ -222,8 +228,7 @@ class Page(object):
             'utf-8',
         )
         new_page_hash = md5(self.page.as_string()).hexdigest()
-        self.project.hash_db[self.pagename] = new_page_hash
+        self.project.hash_db[self.page_name] = new_page_hash
         self.project.hash_db.sync()
         output_file.write(self._render_template())
         output_file.close()
-
