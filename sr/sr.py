@@ -52,9 +52,9 @@ def create(directory):
         config.add_section('general')
         config.add_section('navigation')
         config.set('markdown', 'safe', 'False')
-        config.set('markdown', 'addons', 'codehilite,')
+        config.set('markdown', 'addons', ',')
         config.set('general', 'suffix', '.txt')
-        config.set('navigation', 'index', 'index.html')
+        config.set('navigation', '1-index', 'index.html')
         config.write(configfile)
 
 def list_changed(project):
