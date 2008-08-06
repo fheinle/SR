@@ -56,6 +56,9 @@ def create(directory):
         config.set('general', 'suffix', '.txt')
         config.set('navigation', '1-index', 'index.html')
         config.write(configfile)
+    with open(os.path.join(directory, 'templates', 'standard.html'), 'w') \
+        as standard_template:
+        standard_template.write('<!-- Put your layout here. -->\n$content\n')
 
 def list_changed(project):
     """
