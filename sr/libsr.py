@@ -165,9 +165,12 @@ class Page(object):
             safe_mode = True
         else:
             safe_mode = False
-        return markdown(self.page.get_payload().decode('utf-8'),
-              self.project.config.get('markdown', 'addons').split(',') or None,
-              safe_mode,
+        addons = [addon for addon in 
+                self.project.config.get('markdown', 'addons').split(',')
+                  if addon]
+        return markdown(text=self.page.get_payload().decode('utf-8'),
+              safe_mode=safe_mode,
+              extensions=addons,
         )
 
     def _render_template(self):
