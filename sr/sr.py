@@ -99,7 +99,11 @@ def main():
         sys.exit(1)
     if command == "render":
         project = Project(proj_dir)
-        project.render(force=options.force)
+        result_pages = project.render(force=options.force)
+        print "Pages rendered:"
+        print "\n".join(result_pages[0]) or "None"
+        print "Pages not rendered:" or "None"
+        print "\n".join(result_pages[1])
     elif command == "list":
         project = Project(proj_dir)
         list_changed(project)
