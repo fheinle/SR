@@ -28,4 +28,7 @@ setup(
         'Operating System :: OS Independent',
     ],
     install_requires = 'markdown',
+    extras_require = {
+        'Syntax Highlighting':['pygments'],
+    }
 )
