@@ -70,10 +70,10 @@ def list_changed(project):
     """
     print "Files that need re-rendering: "
     for changed_page in project.list_changed()[0]:
-        print " " + changed_page.page_name
+        print " " + changed_page
     print "Files that don't need to be rendered: "
     for unchanged_page in project.list_changed()[1]:
-        print " " + unchanged_page.page_name
+        print " " + unchanged_page
 
 def main():
     from optparse import OptionParser

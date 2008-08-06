@@ -100,7 +100,7 @@ class Project(object):
         changed_pages = []
         unchanged_pages = []
         if self.config_changed:
-            return ([page for page in self.pages], [])
+            return ([page.page_name for page in self.pages], [])
         else:
             for page in self.pages:
                 if page.has_changed:
