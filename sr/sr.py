@@ -59,6 +59,7 @@ def create(directory):
     with open(os.path.join(directory, 'templates', 'standard.html'), 'w') \
         as standard_template:
         standard_template.write('<!-- Put your layout here. -->\n$content\n')
+    print "Created a new project under %s" % directory
 
 def list_changed(project):
     """
