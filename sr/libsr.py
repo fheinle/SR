@@ -42,7 +42,13 @@ class Project(object):
 
         self.directory = os.path.abspath(directory)
         self.config = SafeConfigParser()
-        config_file = open(os.path.join(directory, 'config.ini'))
+        try:
+            config_file = open(os.path.join(directory, 'config.ini'))
+        except IOError:
+            sys.exit(
+                "Error: couldn't open configfile - is %s an sr project?" %
+                directory
+            )
         self.config_hash = md5(config_file.read()).hexdigest()
         config_file.seek(0)
         self.config.readfp(config_file)
