@@ -12,11 +12,17 @@ This is the part of sr that distinguishes directories into projects
 """
 
 import os
+import sys
 import codecs
 import shelve
 from ConfigParser import SafeConfigParser
 from email import message_from_string
 from md5 import md5
+sys.path.append(os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    'MarkdownAddons',
+    )
+)
 from markdown import markdown
 
 import templates
