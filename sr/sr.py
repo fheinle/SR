@@ -27,7 +27,6 @@ in libsr.py
 """
 
 
-from __future__ import with_statement
 import os
 import sys
 from ConfigParser import SafeConfigParser
@@ -46,19 +45,24 @@ def create(directory):
     os.makedirs(os.path.join(directory, 'templates'))
     os.makedirs(os.path.join(directory, 'output'))
     
-    with open(os.path.join(directory, 'config.ini'), 'w') as configfile:
-        config = SafeConfigParser()
-        config.add_section('markdown')
-        config.add_section('general')
-        config.add_section('navigation')
-        config.set('markdown', 'safe', 'False')
-        config.set('markdown', 'addons', ',')
-        config.set('general', 'suffix', '.txt')
-        config.set('navigation', '1-index', 'index.html')
-        config.write(configfile)
-    with open(os.path.join(directory, 'templates', 'standard.html'), 'w') \
-        as standard_template:
-        standard_template.write('<!-- Put your layout here. -->\n$content\n')
+    config_file = open(os.path.join(directory, 'config.ini'), 'w'):
+    config = SafeConfigParser()
+    config.add_section('markdown')
+    config.add_section('general')
+    config.add_section('navigation')
+    config.set('markdown', 'safe', 'False')
+    config.set('markdown', 'addons', ',')
+    config.set('general', 'suffix', '.txt')
+    config.set('navigation', '1-index', 'index.html')
+    config.write(configfile)
+    configfile.close()
+    standard_template = open(os.path.join(
+                                          directory,
+                                          'templates',
+                                          'standard.html'
+                                          ), 'w')
+    standard_template.write('<!-- Put your layout here. -->\n$content\n')
+    standard_template.close()
     print "Created a new project under %s" % directory
 
 def list_changed(project):
