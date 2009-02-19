@@ -45,7 +45,7 @@ def create(directory):
     os.makedirs(os.path.join(directory, 'templates'))
     os.makedirs(os.path.join(directory, 'output'))
     
-    config_file = open(os.path.join(directory, 'config.ini'), 'w'):
+    config_file = open(os.path.join(directory, 'config.ini'), 'w')
     config = SafeConfigParser()
     config.add_section('markdown')
     config.add_section('general')
