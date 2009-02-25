@@ -5,3 +5,7 @@
 ^tailor.state$
 ^tailor.state.old$
 ^tailor.state.journal$
+pyc$
+^StaticRender.egg-info
+^build
+^dist
