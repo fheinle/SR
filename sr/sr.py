@@ -54,8 +54,8 @@ def create(directory):
     config.set('markdown', 'addons', ',')
     config.set('general', 'suffix', '.txt')
     config.set('navigation', '1-index', 'index.html')
-    config.write(configfile)
-    configfile.close()
+    config.write(config_file)
+    config_file.close()
     standard_template = open(os.path.join(
                                           directory,
                                           'templates',
