@@ -49,11 +49,9 @@ def create(directory):
     config = SafeConfigParser()
     config.add_section('markdown')
     config.add_section('general')
-    config.add_section('navigation')
     config.set('markdown', 'safe', 'False')
     config.set('markdown', 'addons', ',')
     config.set('general', 'suffix', '.txt')
-    config.set('navigation', '1-index', 'index.html')
     config.write(config_file)
     config_file.close()
     standard_template = open(os.path.join(

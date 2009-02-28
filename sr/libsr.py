@@ -201,12 +201,8 @@ class Page(object):
                 'templates',
                 self.template_name)
             )
-        navigation = [(nav_item[0].split('-',1)[1], nav_item[1]) 
-                      for nav_item in 
-                    sorted(self.project.config.items('navigation'))]
         contents = {
             'content':self.markup(),
-            'nav':navigation,
         }
         # add additional headers from the source into template context
         contents.update(self.page)
